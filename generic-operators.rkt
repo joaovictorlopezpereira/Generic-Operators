@@ -37,7 +37,7 @@
 
 (define (make-rat a b)
   (if (= 0 (contents b))
-      (error "cannot divide by zero!")
+      (error "division by 0" a b)
       (let ((x (gcd (contents a) (contents b))))
         (attach-tag 'Q (cons (make-int (/ (contents a) x))
                              (make-int (/ (contents b) x)))))))
@@ -151,22 +151,27 @@
 
 
 ; -----------------------------POLYNOMIALS-PACKAGE------------------------------------
-(define (coeff x)
-  (car (car x)))
-
-(define (exp x)
-  (cdr (car x)))
+(define (tag x)
+  (car x))
 
 (define (term x)
   (car x))
+
+(define (coeff x)
+  (car (term x)))
+
+(define (exp x)
+  (cdr (term x)))
 
 (define (make-term c e)
   (cons c e))
 
 (define (make-poly var . l)
-  ;(simplify-poly
-   (attach-tag 'P (cons var l)))
-;)
+  (simplify-poly
+   (attach-tag 'P (cons var l))))
+
+(define (remaining-terms x)
+  (cdr x))
 
 (define (poly-var x)
   (car (contents x)))
@@ -183,50 +188,81 @@
     (cond ((null? x) y)
           ((null? y) x)
           ((< (contents (exp x)) (contents (exp y)))
-           (cons (term x) (iter (cdr x) y)))
+           (cons (term x) (iter (remaining-terms x) y)))
           ((< (contents (exp y)) (contents (exp x)))
-           (cons (term y) (iter x (cdr y))))
+           (cons (term y) (iter x (remaining-terms y))))
           ((= (contents (exp x)) (contents (exp y)))
            (cons (make-term (add (coeff x) (coeff y))
                             (exp x))
-                 (iter (cdr x) (cdr y))))))
+                 (iter (remaining-terms x) (remaining-terms y))))))
 
   (if (same-var? a b)
-      ;(simplify-poly
-       (attach-tag 'P (cons (poly-var a) (iter (poly-terms a) (poly-terms b))))
-       ;)
+      (simplify-poly (attach-tag 'P (cons (poly-var a)
+                                          (iter (poly-terms a) (poly-terms b)))))
       (error "cannot add polynomials with different variables")))
 
-;(define (simplify-poly x)
-;  (define (int? x)
-;    (eq? (car x) 'Z))
-;
-;  (define (zero? x)
-;    (let ((a (simplify x)))
-;      (if (int? a)
-;          (= 0 (contents a))
-;          #f)))
-;
-;  (define (simplify-terms p)
-;    (cond ((null? p) '())
-;          ((zero? (coeff p)) (simplify-terms (cdr p)))
-;          (else (cons (make-term (simplify (coeff p))
-;                                 (exp p))
-;                      (simplify-terms (cdr p))))))
-;
-;  (let ((simplified-poly (attach-tag 'P (cons (poly-var x) (simplify-terms (poly-terms x))))))
-;    (if (null? (poly-terms simplified-poly))
-;        (make-poly (poly-var x) (make-term (make-int 0) (make-int 0)))
-;        simplified-poly)))
+(define (simplify-poly x)
+  (define (zero? x)
+    (define (int? x)
+      (eq? (tag x) 'Z))
+    (let ((a (simplify x)))
+      (if (int? a)
+          (= 0 (contents a))
+          #f)))
+  
+  (define (poly? x)
+    (eq? (car x) 'P))
+
+  (define (iter p)
+    (cond ((null? p) '())
+          ((zero? (coeff p)) (iter (cdr p)))
+          ((element-present? (tag (coeff p)) tower-of-types-dictionary)
+           (cons (make-term (simplify (coeff p))
+                            (exp p))
+                 (iter (cdr p))))
+          ((poly? (coeff p))
+           (cons (make-term (simplify-poly (coeff p))
+                            (exp p))
+                 (iter (cdr p))))))
+  
+  (let ((simplified-poly (attach-tag 'P (cons (poly-var x)
+                                              (iter (poly-terms x))))))
+    (if (null? (poly-terms simplified-poly))
+        (attach-tag 'P (cons (poly-var x) (list (make-term (make-int 0) (make-int 0)))))
+        simplified-poly)))
 ; -----------------------------POLYNOMIALS-PACKAGE------------------------------------
 
 
-; -------------------------------MATRIXES-PACKAGE-------------------------------------
+; -------------------------------MATRICES-PACKAGE-------------------------------------
 (define (make-matrix . l)
-  (cons 'M l))
+  (define (right-length? lst)
+    (cond ((null? (cdr lst)) #t)
+          ((not (= (length (car lst))
+                   (length (car (cdr lst)))))
+           #f)
+          (else (right-length? (cdr lst)))))
+  (if (right-length? l)
+      (cons 'M l)
+      (error "the matrix has empty spaces" l)))
+
 
 (define (make-row . l)
   l)
+
+
+(define (same-dimension? m1 m2)
+  (define (same-length? lst1 lst2)
+    (= (length lst1) (length lst2)))
+  
+  (define (iter rows1 rows2)
+    (cond ((and (null? rows1) (null? rows2)) #t)  ; no matrices remaining, they have the same dimension
+          ((or (null? rows1) (null? rows2)) #f)   ; one matrix remaining, different dimensions
+          ((not (same-length? (car rows1) (car rows2))) #f)  ; different length
+          (else (iter (cdr rows1) (cdr rows2))))) ; verify the remaining lines
+  
+  (and (same-length? m1 m2)   ; verify if matrices have the same number of rows
+       (iter m1 m2)))         ; verify if each row have the same length
+
 
 (define (add-matrix m1 m2)
   (define (add-row row1 row2)
@@ -237,9 +273,10 @@
           ((null? rows2) (error "Matrices have different dimensions"))
           (else (cons (add-row (car rows1) (car rows2))
                       (iter (cdr rows1) (cdr rows2))))))
-  (iter (contents m1) (contents m2)))
-
-; -------------------------------MATRIXES-PACKAGE-------------------------------------
+  (if (same-dimension? (contents m1) (contents m2))
+      (cons 'M (iter (contents m1) (contents m2)))
+      (error "matrices do not have the same dimension")))
+; -------------------------------MATRICES-PACKAGE-------------------------------------
 
 
 ; -------------------------------PUT!-AND-GET-PACKAGE---------------------------------
@@ -254,38 +291,52 @@
               #f))
         #f)))
 
-(define (element-present? x lst)
-  (cond ((null? lst) #f)
-        ((eq? x (car lst)) #t)
-        (else (element-present? x (cdr lst)))))
 
 (define (put! key-1 key-2 value)
   (let ((subtable (assoc key-1 (cdr local-table))))
-    (if subtable  ;  if it doesn't exist, subtable returns #f
+    (if subtable  ; if it doesn't exist, subtable returns #f
         (let ((record (assoc key-2 (cdr subtable))))
           (if record
-              (set-cdr! record value)  ; Updates the record if an old value is already there
+              (set-cdr! record value)  ; updates the record if an old value is already there
               (set-cdr! subtable
                         (cons (cons key-2 value) (cdr subtable)))))
         (set-cdr! local-table
                   (cons (list key-1 (cons key-2 value)) (cdr local-table)))))
 
-  ;; Adiciona a key-1 na lista tower-of-types-dictionary se key-2 for 'drop ou 'raise
+  ; adds key-1 in tower-of-types-dictionary if key-2 is 'drop ou 'raise
   (if (and (or (eq? key-1 'drop) (eq? key-1 'raise))
-           (not (element-present? key-2 tower-of-types-dictionary)))  ; Verifica se key-1 já está na lista
-      (set! tower-of-types-dictionary (append tower-of-types-dictionary (list key-2))))
-
-  ;(display "inserted in table! ")
-  ;(display value)
-  ;(newline)
-  )
+           (not (element-present? key-2 tower-of-types-dictionary)))  ; verifies if key-1 is in the dict
+      (set! tower-of-types-dictionary (append tower-of-types-dictionary (list key-2)))))
 ; -------------------------------PUT!-AND-GET-PACKAGE---------------------------------
+
+
+; -----------------------------LIST-MANIPULATION-PACKAGE------------------------------
+(define (element-present? x lst)
+  (cond ((null? lst) #f)
+        ((eq? x (car lst)) #t)
+        (else (element-present? x (cdr lst)))))
+
+
+(define (list-pos lst el)
+  (define (iter l e n)
+    (if (eq? (car l) e)
+        n
+        (iter (cdr l) e (+ n 1))))
+  (iter lst el 0))
+
+(define (foldl f l)
+  (define (iter result lst)
+    (if (null? lst)
+        result
+        (iter (f result (car lst)) (cdr lst))))
+  (if (null? l)
+      (error "Empty List" l)
+      (iter (car l) (cdr l))))
+; -----------------------------LIST-MANIPULATION-PACKAGE------------------------------
 
 
 ; -------------------------------TOWER-OF TYPES-PACKAGE-------------------------------
 
-(define (tag x)
-  (car x))
 
 ; -----------------RAISE--------------------------
 (define (int->rat x)
@@ -355,9 +406,9 @@
 
 (define (raise x n)
   (define (iter a m f)
-      (if (= m 0)
-          a
-          (iter (f a) (- m 1) f)))
+    (if (= m 0)
+        a
+        (iter (f a) (- m 1) f)))
   (let ((raiser (make-leveler 'raise)))
     (iter x n raiser)))
 
@@ -377,14 +428,6 @@
 (define tower-of-types-dictionary '())
 
 
-(define (list-pos lst el)
-  (define (iter l e n)
-    (if (eq? (car l) e)
-        n
-        (iter (cdr l) e (+ n 1))))
-  (iter lst el 0))
-
-
 (define (make-op op)
   (lambda (a b)
     (if (and (element-present? (tag a) tower-of-types-dictionary)
@@ -398,33 +441,10 @@
                 ((= a-pos b-pos)
                  ((get op (tag a)) a b))))
         ((get op (tag a)) a b))))
-
-
-(define (foldl f l)
-  (define (foldl-helper f result lst)
-    (if (null? lst)
-        result
-        (foldl-helper f (f result (car lst)) (cdr lst))))
-  (if (null? l)
-      (error "Lista vazia!")
-      (foldl-helper f (car l) (cdr l))))
-
-(define (foldr f l)
-  (define (foldr-helper f lst)
-    (if (null? lst)
-        (error "Lista vazia!")
-        (if (null? (cdr lst))
-            (car lst)
-            (f (car lst) (foldr-helper f (cdr lst))))))
-  (if (null? l)
-      (error "Lista vazia!")
-      (foldr-helper f l)))
-
 ;---------------------GENERIC-OPERATORS-HELPERS---------------------------------------
 
 
 ;---------------------ADDING-PROCEDURES-TO-THE-TABLE----------------------------------
-
 (put! 'add 'M add-matrix)
 (put! 'add 'P add-poly)
 (put! 'add 'C add-complex)
@@ -461,31 +481,32 @@
 (put! 'can-drop? 'R real->rat?)
 (put! 'can-drop? 'Q rat->int?)
 (put! 'can-drop? 'Z (lambda (x) #f))
-
 ;---------------------ADDING-PROCEDURES-TO-THE-TABLE----------------------------------
 
 
 ;----------------------INSTANCIATION-OF-THE-GENERIC-OPERATORS-------------------------
-
 (define (add . l)
-  (simplify (foldr (make-op 'add) l)))
+  (simplify (foldl (make-op 'add) l)))
 
 (define (sub . l)
   (simplify (foldl (make-op 'sub) l)))
 
 (define (mul . l)
-  (simplify (foldr (make-op 'mul) l)))
+  (simplify (foldl (make-op 'mul) l)))
 
 (define (div . l)
   (simplify (foldl (make-op 'div) l)))
-
 ;----------------------INSTANCIATION-OF-THE-GENERIC-OPERATORS-------------------------
 
 
 ;---------------------------------------TESTING---------------------------------------
+(define p1 (make-poly 'x (make-term (make-int 3)(make-int 2))))
 
+(define p2 (make-poly 'y (make-term p1 (make-int 2))))
 
+(define m1 (make-matrix (make-row (make-int 1) (make-int 2) (make-int 3))
+                        (make-row (make-int 1) p2 (make-int 3))
+                        (make-row (make-int 1) (make-int 2) p1)))
 
+(add m1 m1 m1)
 ;---------------------------------------TESTING---------------------------------------
-
-
