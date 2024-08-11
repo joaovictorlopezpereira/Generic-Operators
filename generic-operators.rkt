@@ -73,8 +73,11 @@
 
 
 ; ------------------------------REALS-PACKAGE-----------------------------------------
+(define (exact->inexact x)
+  (* x 1.0))
+
 (define (make-real a)
-  (attach-tag 'R a))
+  (attach-tag 'R (exact->inexact a)))
 
 (define (add-real x y)
   (make-real (+ (contents x)
@@ -102,7 +105,8 @@
   (car (contents x)))
 
 (define (make-complex a b)
-  (attach-tag 'C (cons a b)))
+  (attach-tag 'C (cons (make-real (contents a))
+                       (make-real (contents b)))))
 
 (define (add-complex x y)
   (make-complex (add-real (real-part x)
@@ -160,7 +164,9 @@
   (cons c e))
 
 (define (make-poly var . l)
-  (simplify-poly (attach-tag 'P (cons var l))))
+  ;(simplify-poly
+   (attach-tag 'P (cons var l)))
+;)
 
 (define (poly-var x)
   (car (contents x)))
@@ -170,7 +176,8 @@
 
 (define (add-poly a b)
   (define (same-var? a b)
-    (eq? (poly-var a) (poly-var b)))
+    (eq? (poly-var a) 
+         (poly-var b)))
 
   (define (iter x y)
     (cond ((null? x) y)
@@ -185,54 +192,57 @@
                  (iter (cdr x) (cdr y))))))
 
   (if (same-var? a b)
-      (simplify-poly (attach-tag 'P (cons (poly-var a) (iter (poly-terms a) (poly-terms b)))))
+      ;(simplify-poly
+       (attach-tag 'P (cons (poly-var a) (iter (poly-terms a) (poly-terms b))))
+       ;)
       (error "cannot add polynomials with different variables")))
 
-(define (simplify-poly x)
-  (define (int? x)
-    (eq? (car x) 'Z))
-
-  (define (zero? x)
-    (let ((a (simplify x)))
-      (if (int? a)
-          (= 0 (contents a))
-          #f)))
-
-  (define (simplify-terms p)
-    (cond ((null? p) '())
-          ((zero? (coeff p)) (simplify-terms (cdr p)))
-          (else (cons (make-term (simplify (coeff p))
-                                 (exp p))
-                      (simplify-terms (cdr p))))))
-
-  (let ((r (attach-tag 'P (cons (poly-var x) (simplify-terms (poly-terms x))))))
-    (if (null? (poly-terms r))
-        (make-int 0)
-        r)))
+;(define (simplify-poly x)
+;  (define (int? x)
+;    (eq? (car x) 'Z))
+;
+;  (define (zero? x)
+;    (let ((a (simplify x)))
+;      (if (int? a)
+;          (= 0 (contents a))
+;          #f)))
+;
+;  (define (simplify-terms p)
+;    (cond ((null? p) '())
+;          ((zero? (coeff p)) (simplify-terms (cdr p)))
+;          (else (cons (make-term (simplify (coeff p))
+;                                 (exp p))
+;                      (simplify-terms (cdr p))))))
+;
+;  (let ((simplified-poly (attach-tag 'P (cons (poly-var x) (simplify-terms (poly-terms x))))))
+;    (if (null? (poly-terms simplified-poly))
+;        (make-poly (poly-var x) (make-term (make-int 0) (make-int 0)))
+;        simplified-poly)))
 ; -----------------------------POLYNOMIALS-PACKAGE------------------------------------
 
 
+; -------------------------------MATRIXES-PACKAGE-------------------------------------
+(define (make-matrix . l)
+  (cons 'M l))
+
+(define (make-row . l)
+  l)
+
+(define (add-matrix m1 m2)
+  (define (add-row row1 row2)
+    (map add row1 row2))
+  
+  (define (iter rows1 rows2)
+    (cond ((null? rows1) '())
+          ((null? rows2) (error "Matrices have different dimensions"))
+          (else (cons (add-row (car rows1) (car rows2))
+                      (iter (cdr rows1) (cdr rows2))))))
+  (iter (contents m1) (contents m2)))
+
+; -------------------------------MATRIXES-PACKAGE-------------------------------------
+
+
 ; -------------------------------PUT!-AND-GET-PACKAGE---------------------------------
-;(define global-array '())
-
-;(define (put! op type item)
-;  (define (key entry) (car entry))
-;  (define (make-entry k v) (list k v))
-;  (define (put-helper k array)
-;    (cond ((null? array) (list (make-entry k item)))
-;          ((equal? (key (car array)) k) array)
-;          (else (cons (car array) (put-helper k (cdr array))))))
-;  (set! global-array (put-helper (list op type) global-array)))
-
-;(define (get op type)
-;  (define (key entry) (car entry))
-;  (define (value entry) (cadr entry))
-;  (define (get-helper k array)
-;    (cond ((null? array) #f)
-;          ((equal? (key (car array)) k) (value (car array)))
-;          (else (get-helper k (cdr array)))))
-;  (get-helper (list op type) global-array))
-
 (define local-table (list '*table*))
 
 (define (get key-1 key-2)
@@ -244,6 +254,11 @@
               #f))
         #f)))
 
+(define (element-present? x lst)
+  (cond ((null? lst) #f)
+        ((eq? x (car lst)) #t)
+        (else (element-present? x (cdr lst)))))
+
 (define (put! key-1 key-2 value)
   (let ((subtable (assoc key-1 (cdr local-table))))
     (if subtable  ;  if it doesn't exist, subtable returns #f
@@ -254,11 +269,16 @@
                         (cons (cons key-2 value) (cdr subtable)))))
         (set-cdr! local-table
                   (cons (list key-1 (cons key-2 value)) (cdr local-table)))))
-  (display "inserted in table! ")
-  (display value)
-  (newline))
 
+  ;; Adiciona a key-1 na lista tower-of-types-dictionary se key-2 for 'drop ou 'raise
+  (if (and (or (eq? key-1 'drop) (eq? key-1 'raise))
+           (not (element-present? key-2 tower-of-types-dictionary)))  ; Verifica se key-1 já está na lista
+      (set! tower-of-types-dictionary (append tower-of-types-dictionary (list key-2))))
 
+  ;(display "inserted in table! ")
+  ;(display value)
+  ;(newline)
+  )
 ; -------------------------------PUT!-AND-GET-PACKAGE---------------------------------
 
 
@@ -279,16 +299,9 @@
 (define (real->complex x)
   (make-complex x
                 (make-real 0)))
-
-(define (complex->poly x)
-  (make-poly 'x (make-term x (make-int 0))))
-
 ;-------------------RAISE-------------------------
 
 ;-------------------DROP--------------------------
-(define (poly->complex x)
-  (coeff (poly-terms x)))
-
 (define (complex->real x)
   (real-part x))
 
@@ -307,11 +320,6 @@
 ;------------------DROP---------------------------
 
 ;----------------CAN-DROP?------------------------
-(define (poly->complex? x)
-  (and (tag (coeff (poly-terms x)))
-       (= (contents (exp (poly-terms x))) 0)
-       (= (length (poly-terms x)) 1)))
-
 (define (complex->real? x)
   (= 0 (contents (imaginary-part x))))
 
@@ -324,7 +332,6 @@
 
 
 ;---------------------GENERIC-OPERATORS-HELPERS---------------------------------------
-
 (define (decimal-places n)
   (define (string-index str char)
     (let loop ((i 0))
@@ -337,40 +344,6 @@
         (- (string-length num-str) dot-pos 1)
         0)))
 
-(define (make-op op)
-  (define dictionary
-    (list (cons 'P 0)
-          (cons 'C 1)
-          (cons 'R 2)
-          (cons 'Q 3)
-          (cons 'Z 4)))
-  
-  (define (look-up tag)
-    (define (iter dict)
-      (cond ((null? dict)
-             (error "tag not found in dict" tag))
-            ((eq? (caar dict) tag)
-             (cdar dict))
-            (else (iter (cdr dict)))))
-    (iter dictionary))
-
-  (define (comp-n-times f n)
-    (cond ((= n 0) (lambda (x) x))
-          (else (lambda(x) (f ((comp-n-times f (- n 1)) x))))))
-  
-  (lambda (a b)
-    (let ((a-num-tag (look-up (tag a)))
-          (b-num-tag (look-up (tag b)))
-          (raise (make-leveler 'raise)))
-      (let ((x ((comp-n-times raise
-                              (max 0 (- a-num-tag
-                                        b-num-tag)))
-                a))
-            (y ((comp-n-times raise
-                              (max 0 (- b-num-tag
-                                        a-num-tag)))
-                b)))
-        ((get op (tag x)) x y)))))
 
 (define (make-leveler op)
   (lambda (a)
@@ -379,14 +352,53 @@
           (proc a)
           (error "something unexpected happened!" op a)))))
 
+
+(define (raise x n)
+  (define (iter a m f)
+      (if (= m 0)
+          a
+          (iter (f a) (- m 1) f)))
+  (let ((raiser (make-leveler 'raise)))
+    (iter x n raiser)))
+
+        
 (define (simplify x)
-  (let ((drop (make-leveler 'drop))
-        (droppable? (make-leveler 'can-drop?)))
-    (define (iter a)
-      (if (droppable? a)
-          (iter (drop a))
-          a))
-    (iter x)))
+  (if (element-present? (tag x) tower-of-types-dictionary) 
+      (let ((drop (make-leveler 'drop))
+            (droppable? (make-leveler 'can-drop?)))
+        (define (iter a)
+          (if (droppable? a)
+              (iter (drop a))
+              a))
+        (iter x))
+      x))
+
+
+(define tower-of-types-dictionary '())
+
+
+(define (list-pos lst el)
+  (define (iter l e n)
+    (if (eq? (car l) e)
+        n
+        (iter (cdr l) e (+ n 1))))
+  (iter lst el 0))
+
+
+(define (make-op op)
+  (lambda (a b)
+    (if (and (element-present? (tag a) tower-of-types-dictionary)
+             (element-present? (tag b) tower-of-types-dictionary))
+        (let ((a-pos (list-pos tower-of-types-dictionary (tag a)))
+              (b-pos (list-pos tower-of-types-dictionary (tag b))))
+          (cond ((> a-pos b-pos)
+                 ((get op (tag b)) (raise a (- a-pos b-pos)) b))
+                ((< a-pos b-pos)
+                 ((get op (tag a)) a (raise b (- b-pos a-pos))))
+                ((= a-pos b-pos)
+                 ((get op (tag a)) a b))))
+        ((get op (tag a)) a b))))
+
 
 (define (foldl f l)
   (define (foldl-helper f result lst)
@@ -413,6 +425,7 @@
 
 ;---------------------ADDING-PROCEDURES-TO-THE-TABLE----------------------------------
 
+(put! 'add 'M add-matrix)
 (put! 'add 'P add-poly)
 (put! 'add 'C add-complex)
 (put! 'add 'R add-real)
@@ -434,19 +447,16 @@
 (put! 'div 'Q div-rat)
 (put! 'div 'Z div-int)
 
-(put! 'raise 'P (lambda (x) (error "not possible to raise a poly!")))
-(put! 'raise 'C complex->poly)
+(put! 'raise 'C (lambda (x) (error "not possible to raise complex")))
 (put! 'raise 'R real->complex)
 (put! 'raise 'Q rat->real)
 (put! 'raise 'Z int->rat)
 
-(put! 'drop 'P poly->complex)
 (put! 'drop 'C complex->real)
 (put! 'drop 'R real->rat)
 (put! 'drop 'Q rat->int)
 (put! 'drop 'Z (lambda (x) (error "not possible to drop integer")))
 
-(put! 'can-drop? 'P poly->complex?)
 (put! 'can-drop? 'C complex->real?)
 (put! 'can-drop? 'R real->rat?)
 (put! 'can-drop? 'Q rat->int?)
@@ -474,12 +484,8 @@
 
 ;---------------------------------------TESTING---------------------------------------
 
-(define p1 (make-poly 'x (make-term (make-complex (make-real 5.423) (make-real 0)) (make-int 1))))
 
-(define c1 (make-complex (make-real 2.3) (make-real 1)))
 
-(add p1 p1)
+;---------------------------------------TESTING---------------------------------------
 
-(add c1 c1)
 
-(add p1 c1)
