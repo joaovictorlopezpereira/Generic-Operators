@@ -20,7 +20,7 @@ choose MIT Scheme instead of Scheme or Racket since we are updateing the table
 that the procedures are being stored using set-cdr!, a procedure that the 
 Scheme Language no longer has. The usage of these procedures are not strictly 
 necessary, so these functions can be updated so that we can run our program in
-Scheme. Maybe a few if statements would need to have a else clause.
+Scheme. Maybe a few if statements would need to have an else clause.
 
 
 Bibliography:
