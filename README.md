@@ -16,7 +16,7 @@ tag, which is used to find the appropriate procedure in the tree, a technique
 known as tagged data.
 
 The code is all implemented in MIT Scheme, also known as SICP Language. we
-choose MIT Scheme instead of Scheme or Racket since we are updateing the table
+chose MIT Scheme instead of Scheme or Racket since we are updating the table
 that the procedures are being stored using set-cdr!, a procedure that the 
 Scheme Language no longer has. The usage of these procedures are not strictly 
 necessary, so these functions can be updated so that we can run our program in
