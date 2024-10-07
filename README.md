@@ -3,7 +3,7 @@ and Gerald Jay Sussman's system in Structure and Interpretation of Computer
 Programs.
 
 To avoid creating a large function that calls the appropriate procedure for
-operating on two given types, we built a "tower of types." This approach allows
+operating on two given types, we built a "tower of types". This approach allows
 us to easily use coercion to operate on different representations. By using
 this method, we only need around n procedures, where n is the number of
 representations. If we were to implement all conversion procedures 
