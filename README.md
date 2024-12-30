@@ -4,7 +4,7 @@
 
 This is an implementation of an arithmetic system inspired by Harold Abelson and Gerald Jay Sussman's system in Structure and Interpretation of Computer Programs (SICP).
 
-To avoid creating a large, static function for selecting the appropriate procedure to operate on two given types, a more effective approach is to use data-directed programming. In this approach, procedures are organized in a tree-like structure, which is traversed to locate the correct function for the relevant data. Each data element is tagged with its type, a technique known as tagged data, enabling the system to efficiently dispatch the operation to the appropriate procedure. Additionally, coercion is employed to facilitate operations between different types, leveraging their hierarchical organization in a tower of types.
+To avoid creating a large, static function for selecting the appropriate procedure to operate on two given types, a more effective approach is to use Data-Directed Programming. In this approach, procedures are organized in a tree-like structure, which is traversed to locate the correct function for the relevant data. Each data element is tagged with its type, a technique known as tagged data, enabling the system to efficiently dispatch the operation to the appropriate procedure. Additionally, coercion is employed to facilitate operations between different types, leveraging their hierarchical organization in a tower of types.
 
 A better explanation about the techniques used can be found at the ``brief-context.pdf`` file.
 
