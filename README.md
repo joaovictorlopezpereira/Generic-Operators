@@ -26,13 +26,13 @@ In addition to the arithmetic system, we compare the use of pairs in ``Lisp`` wi
 
 ## Bibliography:
 
-  - ABELSON, Harold; SUSSMAN, Gerald Jay. Structure and Interpretation of 
-    Computer Programs. 2nd ed. Cambridge, MA: The MIT Press, 1984. 
+  - ABELSON, Harold; SUSSMAN, Gerald Jay. Structure and Interpretation of
+    Computer Programs. 2nd ed. Cambridge, MA: The MIT Press, 1984.
     ISBN 0-262-01153-0.
 
-  - ABELSON, Harold. Lecture 4B: Generic Operators. MIT 6.001 Structure and 
-    Interpretation of Computer Programs, Spring 1986. Available at: 
-    https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/. 
+  - ABELSON, Harold. Lecture 4B: Generic Operators. MIT 6.001 Structure and
+    Interpretation of Computer Programs, Spring 1986. Available at:
+    https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/.
     Accessed August 8, 2024.
 
 Any additional bibliography used is cited in the ``brief-context.pdf`` and ``slides.pdf`` files.

@@ -114,13 +114,13 @@
                 (add-real (imaginary-part x)
                           (imaginary-part y))))
 
-(define (sub-complex x y)           
+(define (sub-complex x y)
   (make-complex (sub-real (real-part x)
                           (real-part y))
                 (sub-real (imaginary-part x)
                           (imaginary-part y))))
 
-(define (mul-complex x y)           
+(define (mul-complex x y)
   (make-complex (sub-real (mul-real (real-part x)
                                     (real-part y))
                           (mul-real (imaginary-part x)
@@ -181,7 +181,7 @@
 
 (define (add-poly a b)
   (define (same-var? a b)
-    (eq? (poly-var a) 
+    (eq? (poly-var a)
          (poly-var b)))
 
   (define (iter x y)
@@ -209,7 +209,7 @@
       (if (int? a)
           (= 0 (contents a))
           #f)))
-  
+
   (define (poly? x)
     (eq? (car x) 'P))
 
@@ -224,7 +224,7 @@
            (cons (make-term (simplify-poly (coeff p))
                             (exp p))
                  (iter (cdr p))))))
-  
+
   (let ((simplified-poly (attach-tag 'P (cons (poly-var x)
                                               (iter (poly-terms x))))))
     (if (null? (poly-terms simplified-poly))
@@ -253,13 +253,13 @@
 (define (same-dimension? m1 m2)
   (define (same-length? lst1 lst2)
     (= (length lst1) (length lst2)))
-  
+
   (define (iter rows1 rows2)
     (cond ((and (null? rows1) (null? rows2)) #t)  ; no matrices remaining, they have the same dimension
           ((or (null? rows1) (null? rows2)) #f)   ; one matrix remaining, different dimensions
           ((not (same-length? (car rows1) (car rows2))) #f)  ; different length
           (else (iter (cdr rows1) (cdr rows2))))) ; verify the remaining lines
-  
+
   (and (same-length? m1 m2)   ; verify if matrices have the same number of rows
        (iter m1 m2)))         ; verify if each row have the same length
 
@@ -267,7 +267,7 @@
 (define (add-matrix m1 m2)
   (define (add-row row1 row2)
     (map add row1 row2))
-  
+
   (define (iter rows1 rows2)
     (cond ((null? rows1) '())
           ((null? rows2) (error "Matrices have different dimensions"))
@@ -412,9 +412,9 @@
   (let ((raiser (make-leveler 'raise)))
     (iter x n raiser)))
 
-        
+
 (define (simplify x)
-  (if (element-present? (tag x) tower-of-types-dictionary) 
+  (if (element-present? (tag x) tower-of-types-dictionary)
       (let ((drop (make-leveler 'drop))
             (droppable? (make-leveler 'can-drop?)))
         (define (iter a)
