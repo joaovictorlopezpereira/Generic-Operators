@@ -1,0 +1,79 @@
+%->8---------------------------------------------------8<-%
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%->8---------------------------------------------------8<-%
+
+
+%->8---------------------------------------------------8<-%
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tocloft}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage[backend=biber]{biblatex}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{fancyvrb}
+\usepackage{upquote}
+\usepackage{indentfirst}
+\usepackage{listings}
+%->8---------------------------------------------------8<-%
+
+
+%->8---------------------------------------------------8<-%
+\addbibresource{repertoire.bib}
+% \graphicspath{{figures/}}
+\setlength{\parskip}{\baselineskip}
+\setlength{\footnotesep}{0.8em}
+\setlength{\skip\footins}{2em}
+\setlength{\cftbeforechapskip}{12pt}
+\setlength{\cftbeforesecskip}{6pt}
+%->8---------------------------------------------------8<-%
+
+
+%->8---------------------------------------------------8<-%
+\lstnewenvironment{code}[1][]{
+  \lstset{
+    basicstyle=\ttfamily,
+    columns=flexible,
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=none,
+    basewidth=0.5em,
+    aboveskip=13pt,
+    belowskip=0pt,
+    #1
+  }
+}{}
+\newcommand{\excerpt}[4]{
+  \vspace{25pt}
+  \begin{quote}
+    \begin{center}
+      \hfill
+      \begin{minipage}{0.65\textwidth}
+        #1
+
+        \vspace{5pt}---#2, \\
+        \textit{``#3''}#4
+      \end{minipage}
+    \end{center}
+  \end{quote}
+  \vspace{25pt}
+}
+\newcommand{\funcdef}[1]{
+  \vspace{2.5pt}
+    \begin{center}
+      \texttt{#1}
+    \end{center}
+  \vspace{2.5pt}
+}
+\newcommand{\mathformula}[1]{
+  \vspace{5pt}
+    \[#1\]
+  \vspace{5pt}
+}
+\newcommand{\var}[1]{%
+  \texttt{#1}%
+}
+%->8---------------------------------------------------8<-%

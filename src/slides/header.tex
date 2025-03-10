@@ -1,0 +1,75 @@
+
+%->8-------------------------------------------------------------------------------------------8<-%
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%->8-------------------------------------------------------------------------------------------8<-%
+
+%->8-------------------------------------------------------------------------------------------8<-%
+\usetheme{Darmstadt}
+%->8-------------------------------------------------------------------------------------------8<-%
+
+%->8-------------------------------------------------------------------------------------------8<-%
+\usepackage{graphicx}
+\usepackage{float}
+%->8-------------------------------------------------------------------------------------------8<-%
+
+%->8-------------------------------------------------------------------------------------------8<-%
+\usepackage{geometry}
+\geometry{left=0.4cm, right=0.4cm}
+\usepackage{csquotes}
+\usepackage{amsmath, amssymb}
+\usepackage{upquote}
+\usepackage{listings}
+\usepackage{hyperref}
+\setbeamertemplate{navigation symbols}{}
+%->8-------------------------------------------------------------------------------------------8<-%
+
+%->8-------------------------------------------------------------------------------------------8<-%
+\usepackage[style=numeric, backend=biber]{biblatex}
+\addbibresource{repertoire.bib}
+\graphicspath{{figures/}}
+%->8-------------------------------------------------------------------------------------------8<-%
+
+%->8-------------------------------------------------------------------------------------------8<-%
+\lstnewenvironment{code}[1][]{
+  \lstset{
+    basicstyle=\ttfamily,
+    columns=flexible,
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=none,
+    basewidth=0.5em,
+    aboveskip=13pt,
+    belowskip=0pt,
+    #1
+  }
+}{}
+
+\lstnewenvironment{styledoutput}[1][]{
+  \lstset{
+    basicstyle=\ttfamily\itshape,
+    breaklines=true,
+    breakatwhitespace=true,
+    frame=none,
+    aboveskip=0pt,
+    #1
+  }
+}{}
+
+\newcommand{\userinput}[1]{
+  \noindent
+  \texttt{\textit{>}}
+  \texttt{#1}
+}
+
+\newcommand{\useroutput}[1]{\textit{\texttt{#1}}}
+%->8-------------------------------------------------------------------------------------------8<-%
+
+%->8-------------------------------------------------------------------------------------------8<-%
+\title{Implementando Operadores Genéricos}
+\subtitle{Uma Comparação entre Scheme e Lua}
+\author{João Victor Lopez Pereira}
+\institute{Instituto de Computação -- UFRJ}
+\date{\today}
+%->8-------------------------------------------------------------------------------------------8<-%
